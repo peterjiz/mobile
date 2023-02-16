@@ -55,6 +55,9 @@ func goAppleBind(gobind string, pkgs []*packages.Package, targets []targetInfo) 
 			if platform == "maccatalyst" && v < 13.0 {
 				return errors.New("catalyst requires -iosversion=13 or higher")
 			}
+			if platform == "ioscatalyst" && v < 13.0 {
+				return errors.New("catalyst requires -iosversion=13 or higher")
+			}
 
 			// Run gobind once per platform to generate the bindings
 			cmd := exec.Command(

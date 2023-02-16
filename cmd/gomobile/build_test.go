@@ -145,6 +145,11 @@ func TestParseBuildTarget(t *testing.T) {
 		{"maccatalyst/arm64", false, "maccatalyst/arm64"},
 		{"maccatalyst/amd64", false, "maccatalyst/amd64"},
 
+		{"ioscatalyst", false, "ioscatalyst/arm64,ioscatalyst/amd64"},
+		{"ioscatalyst,ios/arm64", false, "ioscatalyst/arm64,ioscatalyst/amd64,ios/arm64"},
+		{"ioscatalyst/arm64", false, "ioscatalyst/arm64"},
+		{"ioscatalyst/amd64", false, "ioscatalyst/amd64"},
+
 		{"", true, ""},
 		{"linux", true, ""},
 		{"android/x86", true, ""},

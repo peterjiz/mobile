@@ -32,7 +32,7 @@ func isApplePlatform(platform string) bool {
 	return contains(applePlatforms, platform)
 }
 
-var applePlatforms = []string{"ios", "iossimulator", "macos", "maccatalyst"}
+var applePlatforms = []string{"ios", "iossimulator", "macos", "maccatalyst", "ioscatalyst"}
 
 func platformArchs(platform string) []string {
 	switch platform {
@@ -40,7 +40,7 @@ func platformArchs(platform string) []string {
 		return []string{"arm64"}
 	case "iossimulator":
 		return []string{"arm64", "amd64"}
-	case "macos", "maccatalyst":
+	case "macos", "maccatalyst", "ioscatalyst":
 		return []string{"arm64", "amd64"}
 	case "android":
 		return []string{"arm", "arm64", "386", "amd64"}
@@ -66,6 +66,9 @@ func platformOS(platform string) string {
 		// We also apply a "macos" or "maccatalyst" build tag, respectively.
 		// See below for additional context.
 		return "darwin"
+	case "ioscatalyst":
+		// For "ioscatalyst", Go packages should be built with GOOS=ios,
+		return "ios"
 	default:
 		panic(fmt.Sprintf("unexpected platform: %s", platform))
 	}
@@ -79,7 +82,7 @@ func platformTags(platform string) []string {
 		return []string{"ios"}
 	case "macos":
 		return []string{"macos"}
-	case "maccatalyst":
+	case "maccatalyst", "ioscatalyst":
 		// Mac Catalyst is a subset of iOS APIs made available on macOS
 		// designed to ease porting apps developed for iPad to macOS.
 		// See https://developer.apple.com/mac-catalyst/.
@@ -92,7 +95,7 @@ func platformTags(platform string) []string {
 		// https://stackoverflow.com/questions/12132933/preprocessor-macro-for-os-x-targets/49560690#49560690
 		// TODO(ydnar): remove tag "ios" when cgo supports Catalyst
 		// See golang.org/issues/47228
-		return []string{"ios", "macos", "maccatalyst"}
+		return []string{"ios", "macos", "maccatalyst", "ioscatalyst"}
 	default:
 		panic(fmt.Sprintf("unexpected platform: %s", platform))
 	}
@@ -228,6 +231,7 @@ func envInit() (err error) {
 				// Some additional context on this can be found here:
 				// https://stackoverflow.com/questions/12132933/preprocessor-macro-for-os-x-targets/49560690#49560690
 				goos = "darwin"
+				//goos = "ios"
 				sdk = "macosx"
 				clang, cflags, err = envClang(sdk)
 				// TODO(ydnar): the following 3 lines MAY be needed to compile
@@ -236,12 +240,45 @@ func envInit() (err error) {
 				// apps will build for macos or maccatalyst because they have a
 				// GLKit dependency, which is deprecated on all Apple platforms, and
 				// broken on maccatalyst (GLKView isn’t available).
-				// sysroot := strings.SplitN(cflags, " ", 2)[1]
-				// cflags += " -isystem " + sysroot + "/System/iOSSupport/usr/include"
-				// cflags += " -iframework " + sysroot + "/System/iOSSupport/System/Library/Frameworks"
+				sysroot := strings.SplitN(cflags, " ", 2)[1]
+				cflags += " -isystem " + sysroot + "/System/iOSSupport/usr/include"
+				cflags += " -iframework " + sysroot + "/System/iOSSupport/System/Library/Frameworks"
 				switch arch {
 				case "amd64":
 					cflags += " -target x86_64-apple-ios" + buildIOSVersion + "-macabi"
+					cflags += " -fembed-bitcode"
+				case "arm64":
+					cflags += " -target arm64-apple-ios" + buildIOSVersion + "-macabi"
+					cflags += " -fembed-bitcode"
+				}
+			case "ioscatalyst":
+				// Mac Catalyst is a subset of iOS APIs made available on macOS
+				// designed to ease porting apps developed for iPad to macOS.
+				// See https://developer.apple.com/mac-catalyst/.
+				// Because of this, when building a Go package targeting maccatalyst,
+				// GOOS=darwin (not ios). To bridge the gap and enable maccatalyst
+				// packages to be compiled, we also specify the "ios" build tag.
+				// To help discriminate between darwin, ios, macos, and maccatalyst
+				// targets, there is also a "maccatalyst" tag.
+				// Some additional context on this can be found here:
+				// https://stackoverflow.com/questions/12132933/preprocessor-macro-for-os-x-targets/49560690#49560690
+				//goos = "darwin"
+				goos = "ios"
+				sdk = "macosx"
+				clang, cflags, err = envClang(sdk)
+				// TODO(ydnar): the following 3 lines MAY be needed to compile
+				// packages or apps for maccatalyst. Commenting them out now in case
+				// it turns out they are necessary. Currently none of the example
+				// apps will build for macos or maccatalyst because they have a
+				// GLKit dependency, which is deprecated on all Apple platforms, and
+				// broken on maccatalyst (GLKView isn’t available).
+				sysroot := strings.SplitN(cflags, " ", 2)[1]
+				cflags += " -isystem " + sysroot + "/System/iOSSupport/usr/include"
+				cflags += " -iframework " + sysroot + "/System/iOSSupport/System/Library/Frameworks"
+				switch arch {
+				case "amd64":
+					cflags += " -target x86_64-apple-ios" + buildIOSVersion + "-macabi"
+					cflags += " -fembed-bitcode"
 				case "arm64":
 					cflags += " -target arm64-apple-ios" + buildIOSVersion + "-macabi"
 					cflags += " -fembed-bitcode"

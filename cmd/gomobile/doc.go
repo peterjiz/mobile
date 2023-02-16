@@ -34,13 +34,13 @@ Use 'gomobile help [command]' for more information about that command.
 
 Usage:
 
-	gomobile bind [-target android|ios|iossimulator|macos|maccatalyst] [-bootclasspath <path>] [-classpath <path>] [-o output] [build flags] [package]
+	gomobile bind [-target android|ios|iossimulator|macos|maccatalyst|ioscatalyst] [-bootclasspath <path>] [-classpath <path>] [-o output] [build flags] [package]
 
 Bind generates language bindings for the package named by the import
 path, and compiles a library for the named target system.
 
 The -target flag takes either android (the default), or one or more
-comma-delimited Apple platforms (ios, iossimulator, macos, maccatalyst).
+comma-delimited Apple platforms (ios, iossimulator, macos, maccatalyst, ioscatalyst).
 
 For -target android, the bind command produces an AAR (Android ARchive)
 file that archives the precompiled Java API stub classes, the compiled
@@ -79,14 +79,14 @@ are shared with the build command. For documentation, see 'go help build'.
 
 Usage:
 
-	gomobile build [-target android|ios|iossimulator|macos|maccatalyst] [-o output] [-bundleid bundleID] [build flags] [package]
+	gomobile build [-target android|ios|iossimulator|macos|maccatalyst|ioscatalyst] [-o output] [-bundleid bundleID] [build flags] [package]
 
 Build compiles and encodes the app named by the import path.
 
 The named package must define a main function.
 
 The -target flag takes either android (the default), or one or more
-comma-delimited Apple platforms (ios, iossimulator, macos, maccatalyst).
+comma-delimited Apple platforms (ios, iossimulator, macos, maccatalyst, ioscatalyst).
 
 For -target android, if an AndroidManifest.xml is defined in the
 package directory, it is added to the APK output. Otherwise, a default
@@ -101,8 +101,8 @@ Xcode installed.
 By default, -target ios will generate an XCFramework for both ios
 and iossimulator. Multiple Apple targets can be specified, creating a "fat"
 XCFramework with each slice. To generate a fat XCFramework that supports
-iOS, macOS, and macCatalyst for all supportec architectures (amd64 and arm64),
-specify -target ios,macos,maccatalyst. A subset of instruction sets can be
+iOS, macOS, and macCatalyst, iosCatalyst for all supportec architectures (amd64 and arm64),
+specify -target ios,macos,maccatalyst,ioscatalyst. A subset of instruction sets can be
 selectged by specifying the platform with an architecture name. E.g.
 -target=ios/arm64,maccatalyst/arm64.
 
@@ -134,7 +134,7 @@ Usage:
 
 # Clean removes object files and cached NDK files downloaded by gomobile init
 
-Build OpenAL for Android
+# Build OpenAL for Android
 
 Usage:
 

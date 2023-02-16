@@ -49,8 +49,8 @@ Xcode installed.
 By default, -target ios will generate an XCFramework for both ios
 and iossimulator. Multiple Apple targets can be specified, creating a "fat"
 XCFramework with each slice. To generate a fat XCFramework that supports
-iOS, macOS, and macCatalyst for all supportec architectures (amd64 and arm64),
-specify -target ios,macos,maccatalyst. A subset of instruction sets can be
+iOS, macOS, and macCatalyst, iosCatalyst for all supportec architectures (amd64 and arm64),
+specify -target ios,macos,maccatalyst,ioscatalyst. A subset of instruction sets can be
 selectged by specifying the platform with an architecture name. E.g.
 -target=ios/arm64,maccatalyst/arm64.
 
@@ -151,6 +151,9 @@ func runBuildImpl(cmd *command) (*packages.Package, error) {
 				// Catalyst support requires iOS 13+
 				v, _ := strconv.ParseFloat(buildIOSVersion, 64)
 				if t.platform == "maccatalyst" && v < 13.0 {
+					return nil, errors.New("catalyst requires -iosversion=13 or higher")
+				}
+				if t.platform == "ioscatalyst" && v < 13.0 {
 					return nil, errors.New("catalyst requires -iosversion=13 or higher")
 				}
 				if err := goBuild(pkg.PkgPath, appleEnv[t.String()]); err != nil {
@@ -369,7 +372,7 @@ func goModTidyAt(at string, env []string) error {
 //
 //	android
 //	android/arm64,android/386,android/amd64
-//	ios,iossimulator,maccatalyst
+//	ios,iossimulator,maccatalyst,ioscatalyst
 //	macos/amd64
 func parseBuildTarget(buildTarget string) ([]targetInfo, error) {
 	if buildTarget == "" {
